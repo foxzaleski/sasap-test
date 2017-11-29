@@ -1,0 +1,132 @@
+---
+title: "data cleaning with Bryce"
+author: "Molly Zaleski"
+date: "November 28, 2017"
+output: html_document
+---
+
+#First csv example:
+
+```{r, echo=FALSE}
+catch <- read.csv("df35b.302.1.csv", stringsAsFactors = FALSE)
+#will open the file in sasap-test folder "df35b.302.1"
+
+#to look at the data in a separate tab within this pane:
+View(catch)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+#to remove columns from the dataframe that we don't want for our analyses:
+catch <- catch %>% 
+  select(-All, -notesRegCode)
+#alternatively, you could just write select(catch,-All,-notesRegCode) without the pipe syntax of %>%
+#you can also do positive selection if the columns you want are less than the columns you don't
+#example: catch %>% select(Region, Year, Chinook, etc.)
+```
+
+```{r}
+catch <- catch %>%
+  gather(species, catch, -Region, -Year) #new columns first, then ignore other columns for transformation
+#inverse function of gather = spread()
+```
+
+```{r}
+summary(catch)
+#you'll see the catch column isn't reading the numbers as numbers because of some NA's
+catch_integers <- as.integer(catch$catch)
+which(is.na(catch_integers)) #aha! 401
+catch[401,] #shows row number, in which the catch value is "I"
+#to fix this row mistake:
+catch[401,"catch"] <- 1
+
+#so now to modify the column using dplyr
+catch <- catch %>% #this refers to dataframe
+  mutate(catch=as.integer(catch)) #once it's been defined, these refer to the columns
+summary(catch)
+#Note: go back to the website where this data was from for the metadata to see that the catch is in 1,000s of fish
+```
+
+https://knb.ecoinformatics.org/#view/df35b.304.2
+
+```{r}
+catch <- catch %>%
+  mutate(catch = catch*1000)
+
+summary(catch)
+```
+
+```{r}
+#Now that the data is in the proper unit of fish, you can run some calculations on the catches by region:
+catch %>%
+  group_by(Region) %>%
+  summarize(mean_catch = mean(catch))
+```
+
+```{r}
+#to calculate how many rows are in each group, and save it as its own dataframe:
+sample_size <- catch %>%
+  group_by(Region) %>%
+  summarize(n = n())
+sample_size
+```
+
+```{r}
+#now can filter by region/categorical variable
+sse_catches <- catch %>%
+  filter(Region == "SSE")
+sse_catches
+
+#or by catch size
+large_catches <- catch %>%
+  filter(catch > 1000000)
+summary(large_catches)
+
+#or by large catches ONLY in SSE:
+large_sse_catches <- catch %>%
+  filter(catch > 1000000 & Region == "SSE")
+summary(large_sse_catches)
+
+#now let's sort the table of these large catches:
+large_sse_catches %>%
+  arrange(species) #or by desc(species) if you want reverse alphabetically ordered
+
+```
+
+Combining with a second CSv:
+
+```{r}
+region_defs <- read.csv("df35b.303.1.csv", stringsAsFactors = FALSE)
+View(region_defs)
+
+catch %>%
+  group_by(Region) %>%
+  summarize(total_catch = sum(catch)) %>%
+  left_join(region_defs, by = c("Region" = "code"))
+#going to take the rows from the above regional summary then join it with the other table
+#in left_join, you tell it which columns should be treated the same
+```
+
+# New example, section 7.12
+```{r}
+dates_df <- data.frame(date = c("5/24/1930",
+                                "5/25/1930",
+                                "5/26/1930",
+                                "5/27/1930",
+                                "5/28/1930"),
+                       stringsAsFactors = FALSE)
+
+dates_df <- dates_df %>% 
+  separate(date, c("month", "day", "year"), "/")
+
+#to undo what we just did (or combine columns into one) as a new column
+dates_df %>%
+  unite(date, month, day, year, sep ="/") #date is the new column header
+
+```
+
+
