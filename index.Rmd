@@ -11,12 +11,14 @@ editor_options:
 escapement <- read.csv("knb.92020.1.csv", stringsAsFactors = FALSE)
 ```
 
-```{r}
-library(dplyr)
-library(tidyr)
-library(leaflet)
-library(ggplot2)
-library(DT)
+```{r, echo=FALSE}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(leaflet)
+  library(ggplot2)
+  library(DT)
+  })
 ```
 
 ```{r}
