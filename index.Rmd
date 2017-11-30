@@ -6,7 +6,7 @@ output: html_document
 editor_options: 
   chunk_output_type: inline
 ---
-
+###Bringing in the data:
 ```{r, cache=TRUE}
 escapement <- read.csv("knb.92020.1.csv", stringsAsFactors = FALSE)
 ```
@@ -21,8 +21,8 @@ suppressPackageStartupMessages({
   })
 ```
 
+###Calculating the median annual escapement by species
 ```{r}
-#median annual escapement by species
 med.escapament <- escapement %>%
   separate(sampleDate, c("Year","Month","Day"), sep = "-") %>%
   group_by(Species, Location, Year) %>%
@@ -37,6 +37,7 @@ ggplot(med.escapament, aes(Species, Median_Escapement)) +
   coord_flip()
 ```
 
+###Plotting the individual sampling locations
 ```{r}
 locations <- escapement %>%
   distinct(Location, Latitude, Longitude) %>%
@@ -48,3 +49,4 @@ leaflet(locations) %>%
 
 ```
 
+Ooh^ooh^
